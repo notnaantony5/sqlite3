@@ -12,6 +12,8 @@ def main():
             cur.execute("DROP TABLE IF EXISTS profiles")
             conn.commit()
         users_profiles = get_data_from_db(conn)
+        for user in users_profiles:
+            print_profile(user)
         # create_tables(conn)
         # user = get_user_data()
         # profile = get_profile_data()
@@ -24,6 +26,13 @@ class UserProfileData(NamedTuple):
     age: int
     title: str
     content: str
+
+
+def print_profile(profile: UserProfileData):
+    print(f"Имя: {profile.name}\n"
+          f"Возраст: {profile.age}\n"
+          f"Название: {profile.title}\n"
+          f"Содержание: {profile.content}\n")
 
 
 def get_data_from_db(conn: sqlite3.Connection) -> list[UserProfileData]:
