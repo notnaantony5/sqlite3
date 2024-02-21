@@ -7,12 +7,26 @@ DROP = False
 def main():
     with sqlite3.connect('data.db') as conn:
         if DROP:
-            return
+            cur = conn.cursor()
+            cur.execute("DROP TABLE IF EXISTS users")
+            cur.execute("DROP TABLE IF EXISTS profiles")
+            conn.commit()
+        get_data_from_db(conn)
         create_tables(conn)
-        user = UserData("Саша", 20)
-        profile = ProfileData("название", "содержание", 100)
+        user = get_user_data()
+        profile = get_profile_data()
         insert_into_user_table(conn, user)
         insert_into_profile_table(conn, profile)
+
+
+def get_data_from_db(conn: sqlite3.Connection):
+    cur = conn.cursor()
+    get_data = ("SELECT users.id, users.name, users.age, "
+                "profiles.title, profiles.content, profiles.user_id "
+                "FROM users, profiles "
+                "WHERE users.id = profiles.user_id")
+    data = cur.execute(get_data).fetchall()
+    print(data)
 
 
 class UserData(NamedTuple):
@@ -30,6 +44,13 @@ def get_user_data() -> UserData:
     name = input('Введите свое имя: ')
     age = int(input('Введите свой возраст: '))
     return UserData(name=name, age=age)
+
+
+def get_profile_data() -> ProfileData:
+    title = input('Введите название профайла: ')
+    content = input('Введите содержимое: ')
+    user_id = int(input('Введите user_id: '))
+    return ProfileData(title=title, content=content, user_id=user_id)
 
 
 def insert_into_user_table(conn: sqlite3.Connection,
