@@ -11,12 +11,12 @@ def main():
             cur.execute("DROP TABLE IF EXISTS users")
             cur.execute("DROP TABLE IF EXISTS profiles")
             conn.commit()
-        get_data_from_db(conn)
-        create_tables(conn)
-        user = get_user_data()
-        profile = get_profile_data()
-        insert_into_user_table(conn, user)
-        insert_into_profile_table(conn, profile)
+        users_profiles = get_data_from_db(conn)
+        # create_tables(conn)
+        # user = get_user_data()
+        # profile = get_profile_data()
+        # insert_into_user_table(conn, user)
+        # insert_into_profile_table(conn, profile)
 
 
 class UserProfileData(NamedTuple):
