@@ -9,11 +9,21 @@ def main():
         if DROP:
             return
         create_tables(conn)
+        user = UserData("Саша", 20)
+        profile = ProfileData("название", "содержание", 100)
+        insert_into_user_table(conn, user)
+        insert_into_profile_table(conn, profile)
 
 
 class UserData(NamedTuple):
     name: str
     age: int
+
+
+class ProfileData(NamedTuple):
+    title: str
+    content: str
+    user_id: int
 
 
 def get_user_data() -> UserData:
@@ -32,6 +42,16 @@ def insert_into_user_table(conn: sqlite3.Connection,
     conn.commit()
 
 
+def insert_into_profile_table(conn: sqlite3.Connection,
+                              profile: ProfileData):
+    cursor = conn.cursor()
+    insert_command = ("INSERT INTO profiles (title, content, user_id) "
+                      "VALUES (?, ?, ?)")
+    cursor.execute(insert_command,
+                   profile)
+    conn.commit()
+
+
 def create_tables(conn: sqlite3.Connection):
     cursor = conn.cursor()
     create_user_table = (
@@ -46,7 +66,8 @@ def create_tables(conn: sqlite3.Connection):
         "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
         "title VARCHAR(30) NOT NULL, "
         "content TEXT NOT NULL, "
-        "user_id INTEGER REFERENCES users(id) NOT NULL) "
+        "user_id INTEGER, "
+        "FOREIGN KEY (user_id) REFERENCES users(id)) "
     )
     cursor.execute(create_profile_table)
     conn.commit()
