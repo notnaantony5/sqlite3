@@ -9,8 +9,6 @@ def main():
         if DROP:
             return
         create_tables(conn)
-        user_data = get_user_data()
-        insert_into_user_table(conn, user_data)
 
 
 class UserData(NamedTuple):
@@ -43,6 +41,14 @@ def create_tables(conn: sqlite3.Connection):
         "age INTEGER NOT NULL)"
     )
     cursor.execute(create_user_table)
+    create_profile_table = (
+        "CREATE TABLE IF NOT EXISTS profiles "
+        "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "title VARCHAR(30) NOT NULL, "
+        "content TEXT NOT NULL, "
+        "user_id INTEGER REFERENCES users(id) NOT NULL) "
+    )
+    cursor.execute(create_profile_table)
     conn.commit()
 
 
