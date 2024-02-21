@@ -19,14 +19,24 @@ def main():
         insert_into_profile_table(conn, profile)
 
 
-def get_data_from_db(conn: sqlite3.Connection):
+class UserProfileData(NamedTuple):
+    name: str
+    age: int
+    title: str
+    content: str
+
+
+def get_data_from_db(conn: sqlite3.Connection) -> list[UserProfileData]:
     cur = conn.cursor()
     get_data = ("SELECT users.id, users.name, users.age, "
                 "profiles.title, profiles.content, profiles.user_id "
                 "FROM users, profiles "
                 "WHERE users.id = profiles.user_id")
     data = cur.execute(get_data).fetchall()
-    print(data)
+    return [
+        UserProfileData(name, age, title, content)
+        for _, name, age, title, content, _ in data
+    ]
 
 
 class UserData(NamedTuple):
