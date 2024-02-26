@@ -32,7 +32,7 @@ Python, sql, GIT
 person <-> job
 person <- person_skill_link (person_id, skill_id) - skill
 ```python
-dct = dict()
+persons = dict()
 for skill in skills (['python', 'sql', 'git']):
     for person in persons (SELECT * from person)
         for person_skill in person_skills (
