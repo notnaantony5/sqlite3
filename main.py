@@ -5,6 +5,47 @@ SKILLS = ['python', 'sql', 'git', 'django']
 NAMES = ['Саша', 'Петя', 'Вова', 'Егор']
 
 
+def get_data_from_user() -> tuple[list[str], int]:
+    skills_str = input("Введите навыки через запятую:\n")
+    exp = int(input("Введите стаж:\n"))
+    skills = [word.strip()
+              for word in
+              skills_str.lower().split(',')]
+    return skills, exp
+
+
+def get_data_from_db(
+        conn: sqlite3.Connection,
+        skills: list[str],
+        exp: int
+):
+    persons_skills = dict()
+    get_persons_id = """
+    SELECT id FROM person
+    """
+    cur = conn.cursor()
+    cur.execute(get_persons_id)
+    persons_ids = [person_id[0]
+                   for person_id in cur.fetchall()]
+    for person_id in persons_ids:
+            get_person_skills = """
+            SELECT * from skill, person_skill_link
+            WHERE person_skill_link.person_id = ?
+            AND person_skill_link.skill_id = skill.id
+            """
+            cur.execute(get_person_skills, (person_id,))
+            db_skills = cur.fetchall()
+            for skill in skills:
+                for db_skill in db_skills:
+                    print(skill, db_skill[1])
+                    if skill == db_skill[1]:
+                        if persons_skills.get(person_id):
+                            persons_skills[person_id] += 1
+                        else:
+                            persons_skills[person_id] = 1
+    print(persons_skills)
+
+
 def create_tables(conn: sqlite3.Connection) -> None:
     cur = conn.cursor()
     create_person = """
@@ -67,3 +108,5 @@ with sqlite3.connect('db.sqlite3') as conn:
     cur.execute("DROP TABLE IF EXISTS person_skill_link")
     create_tables(conn)
     insert_values(conn)
+    skills, exp = get_data_from_user()
+    get_data_from_db(conn, skills, exp)
