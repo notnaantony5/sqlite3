@@ -33,9 +33,9 @@ def get_data_from_db(
             WHERE person_skill_link.person_id = ?
             AND person_skill_link.skill_id = skill.id
             AND person_skill_link.person_id = person.id
-            AND person.exp < ?
+            AND person.exp > ?
             """  # TODO: добавить второй вопрос (значение)
-        cur.execute(get_person_skills, (person_id,))
+        cur.execute(get_person_skills, (person_id, exp))
         db_skills = cur.fetchall()
         for skill in skills:
             for db_skill in db_skills:
@@ -51,19 +51,23 @@ def get_data_from_db(
     persons_skills = persons_skills[:3]
     for person in persons_skills:
         get_user_info = """
-        SELECT name
+        SELECT name, age, exp
         FROM person
         WHERE id = ?
         """  # TODO: брать не только имя а все поля таблицы
         cur.execute(get_user_info, (person['person_id'],))
-        person_info = cur.fetchone()
-        person['name'] = person_info[0]  # TODO: добавить в словарь другие поля
+        name, age, exp = cur.fetchone()
+        person['name'] = name
+        person['age'] = age
+        person['exp'] = exp
     return persons_skills
 
 
 def print_user_info(persons_skills, skills_count):
     for person in persons_skills:
         print(f"Имя: {person['name']}\n"
+              f"Возраст: {person['age']}\n"
+              f"Стаж: {person['exp']}\n"
               f"Подходит на "
               f"{person['skills_count'] * 100 // skills_count}"
               f"%.\n")  # TODO: печатать все переданные поля таблицы
@@ -74,7 +78,9 @@ def create_tables(conn: sqlite3.Connection) -> None:
     create_person = """
     CREATE TABLE IF NOT EXISTS person (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    name VARCHAR(30) NOT NULL
+    name VARCHAR(30) NOT NULL,
+    age INTEGER NOT NULL,
+    exp INTEGER NOT NULL
     )
     """  # TODO: Добавить поле стажа (ну и возможно возраста для полноты данных)
     create_skills = """
@@ -107,11 +113,13 @@ def insert_values(conn: sqlite3.Connection):
     skills_ids = list(range(1, len(SKILLS) + 1))
     for person_id in range(1, 5):
         name = choice(NAMES)
+        age = randint(20, 40)
+        exp = randint(0, 10)
         insert_person = """
-        INSERT INTO person (name)
-        VALUES (?)
+        INSERT INTO person (name, age, exp)
+        VALUES (?, ?, ?)
         """  # TODO: добавить поля согласно таблице
-        cur.execute(insert_person, (name,))
+        cur.execute(insert_person, (name, age, exp))
         # TODO: добавить соответствующие значения,
         #  числа можно сгенерировать с помощью randint
         insert_link = """
