@@ -1,8 +1,8 @@
 import sqlite3
 from random import choice, randint, shuffle
 
-SKILLS = ['python', 'sql', 'git', 'django']
-NAMES = ['Саша', 'Петя', 'Вова', 'Егор']
+SKILLS = ['python', 'sql', 'git', 'django', 'fastapi']
+NAMES = ['Саша', 'Петя', 'Вова', 'Егор', 'Антон']
 
 
 def get_data_from_user() -> tuple[list[str], int]:
@@ -28,22 +28,45 @@ def get_data_from_db(
     persons_ids = [person_id[0]
                    for person_id in cur.fetchall()]
     for person_id in persons_ids:
-            get_person_skills = """
-            SELECT * from skill, person_skill_link
+        get_person_skills = """
+            SELECT * from skill, person_skill_link, person
             WHERE person_skill_link.person_id = ?
             AND person_skill_link.skill_id = skill.id
-            """
-            cur.execute(get_person_skills, (person_id,))
-            db_skills = cur.fetchall()
-            for skill in skills:
-                for db_skill in db_skills:
-                    print(skill, db_skill[1])
-                    if skill == db_skill[1]:
-                        if persons_skills.get(person_id):
-                            persons_skills[person_id] += 1
-                        else:
-                            persons_skills[person_id] = 1
-    print(persons_skills)
+            AND person_skill_link.person_id = person.id
+            AND person.exp < ?
+            """  # TODO: добавить второй вопрос (значение)
+        cur.execute(get_person_skills, (person_id,))
+        db_skills = cur.fetchall()
+        for skill in skills:
+            for db_skill in db_skills:
+                if skill == db_skill[1]:
+                    if persons_skills.get(person_id):
+                        persons_skills[person_id] += 1
+                    else:
+                        persons_skills[person_id] = 1
+    persons_skills = [{"person_id": person_id, "skills_count": skills_count}
+                      for person_id, skills_count
+                      in persons_skills.items()]
+    persons_skills.sort(key=lambda x: x["skills_count"], reverse=True)
+    persons_skills = persons_skills[:3]
+    for person in persons_skills:
+        get_user_info = """
+        SELECT name
+        FROM person
+        WHERE id = ?
+        """  # TODO: брать не только имя а все поля таблицы
+        cur.execute(get_user_info, (person['person_id'],))
+        person_info = cur.fetchone()
+        person['name'] = person_info[0]  # TODO: добавить в словарь другие поля
+    return persons_skills
+
+
+def print_user_info(persons_skills, skills_count):
+    for person in persons_skills:
+        print(f"Имя: {person['name']}\n"
+              f"Подходит на "
+              f"{person['skills_count'] * 100 // skills_count}"
+              f"%.\n")  # TODO: печатать все переданные поля таблицы
 
 
 def create_tables(conn: sqlite3.Connection) -> None:
@@ -53,7 +76,7 @@ def create_tables(conn: sqlite3.Connection) -> None:
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name VARCHAR(30) NOT NULL
     )
-    """
+    """  # TODO: Добавить поле стажа (ну и возможно возраста для полноты данных)
     create_skills = """
     CREATE TABLE IF NOT EXISTS skill (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -82,18 +105,20 @@ def insert_values(conn: sqlite3.Connection):
         """
         cur.execute(insert_skills, (skill,))
     skills_ids = list(range(1, len(SKILLS) + 1))
-    for person_id in range(1, 3):
+    for person_id in range(1, 5):
         name = choice(NAMES)
         insert_person = """
         INSERT INTO person (name)
         VALUES (?)
-        """
+        """  # TODO: добавить поля согласно таблице
         cur.execute(insert_person, (name,))
+        # TODO: добавить соответствующие значения,
+        #  числа можно сгенерировать с помощью randint
         insert_link = """
         INSERT INTO person_skill_link (person_id, skill_id)
         VALUES (?, ?)
         """
-        count_skills = randint(2, 4)
+        count_skills = randint(2, 5)
         shuffle(skills_ids)
         for i in range(count_skills):
             skill_id = skills_ids[i]
@@ -109,4 +134,5 @@ with sqlite3.connect('db.sqlite3') as conn:
     create_tables(conn)
     insert_values(conn)
     skills, exp = get_data_from_user()
-    get_data_from_db(conn, skills, exp)
+    persons_skills = get_data_from_db(conn, skills, exp)
+    print_user_info(persons_skills, len(skills))
