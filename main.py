@@ -39,15 +39,21 @@ class Group:
         return student in map(lambda x: str(x), self._students)
 
     def avg_mark(self):
-        pass
-
+        marks = []
+        for student in self._students:
+            marks += student.get_marks()
+        return sum(marks) / len(marks)
 
 
 s1 = Student('John', [5, 5, 5, 5])
 s2 = Student('Michael', [3, 4, 5])
 s3 = Student('Joe', [4, 3, 4])
+s4 = Student('Jason', [2, 3, 2, 4])
+s5 = Student('Patrik', [3, 4, 2])
+s6 = Student('Viktor', [4, 5, 4])
 g = Group([s1, s2, s3])
-print(max(g))
+print(g.avg_mark())
+sorted_g = sorted(g, lambda x: x.avgm_marks())
 # class Dollar:
 #     def __init__(self, dollars: int, cents: int):
 #         self._dollars = dollars
