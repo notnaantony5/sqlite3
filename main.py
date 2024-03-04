@@ -53,7 +53,7 @@ s5 = Student('Patrik', [3, 4, 2])
 s6 = Student('Viktor', [4, 5, 4])
 g = Group([s1, s2, s3])
 print(g.avg_mark())
-sorted_g = sorted(g, lambda x: x.avgm_marks())
+sorted_g = sorted(g, key=lambda x: x.avgm_marks())
 # class Dollar:
 #     def __init__(self, dollars: int, cents: int):
 #         self._dollars = dollars
