@@ -51,9 +51,14 @@ s3 = Student('Joe', [4, 3, 4])
 s4 = Student('Jason', [2, 3, 2, 4])
 s5 = Student('Patrik', [3, 4, 2])
 s6 = Student('Viktor', [4, 5, 4])
-g = Group([s1, s2, s3])
-print(g.avg_mark())
-sorted_g = sorted(g, key=lambda x: x.avgm_marks())
+g = Group([s1, s2, s3, s4, s5, s6])
+sorted_g = sorted(g,
+                  key=lambda x: x.avg_mark(),
+                  reverse=True)[:3]
+for student in sorted_g:
+    print(f"Имя: {student}\n"
+          f"Средняя оценка: {round(student.avg_mark(), 1)}\n"
+          f"Оценки: {', '.join(map(str, student.get_marks()))}\n")
 # class Dollar:
 #     def __init__(self, dollars: int, cents: int):
 #         self._dollars = dollars
